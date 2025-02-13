@@ -92,12 +92,36 @@ class WastesController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $Siswa= Wastes::find($id);
-        $Siswa->price_per_kg = $request->price_per_kg;
-        $Siswa->name = $request->name;
-        $Siswa->category_id = $request->category_id;
-        $Siswa->save();
-        return response()->json($Siswa);
+        $waste = Wastes::find($id);
+        if (!$waste) {
+            return response()->json(['message' => 'Waste not found'], 404);
+        }
+
+        // Validasi input
+        $validator = Validator::make($request->all(), [
+            'name' => 'required|string|max:50',
+            'price_per_kg' => 'required|numeric|min:0',
+            'category_id' => 'required|exists:Categories,id'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'status' => 'failed',
+                'errors' => $validator->errors()
+            ], 422);
+        }
+
+        // Update data
+        $waste->update([
+            'name' => $request->name,
+            'price_per_kg' => $request->price_per_kg,
+            'category_id' => $request->category_id
+        ]);
+
+        return response()->json([
+            'message' => 'Waste updated successfully',
+            'data' => $waste
+        ], 200);
     }
 
     /**
@@ -105,10 +129,13 @@ class WastesController extends Controller
      */
     public function destroy(string $id)
     {
-        $wastes = Wastes::destroy($id);
-        if(!$wastes){
-            return response()->json(['message' => 'Wastes Was Failed To Deleted']);
+        $waste = Wastes::find($id);
+
+        if (!$waste) {
+            return response()->json(['message' => 'Wastes not found'], 404);
         }
-        return response()->json(['message' => 'Wastes Was Successfuly Deleted']);
+
+        $waste->delete();
+        return response()->json(['message' => 'Wastes successfully deleted']);
     }
 }
