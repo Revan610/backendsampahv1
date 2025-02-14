@@ -25,6 +25,10 @@ Route::middleware('auth:sanctum')->group(function () {
     });
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/update/{id}', [AuthController::class, 'update']);
+    Route::get('/admin', [AuthController::class, 'index']);
+    Route::get('/admin/{id}', [AuthController::class, 'show']);
+    Route::delete('/admin/{id}', [AuthController::class, 'destroy']);
+    Route::put('/admin/role/{id}', [AuthController::class, 'updateRole']);
     Route::apiResource('category',CategoriesController::class);
     Route::apiResource('wastes',WastesController::class);
 });
