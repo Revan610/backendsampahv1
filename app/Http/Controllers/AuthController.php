@@ -25,11 +25,7 @@ class AuthController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
-            'Access_token'=> $token,
-            'token_type'=>'Bearer',
             'user' => $user,
             'message' => 'AKUN BERHASIL DIBUAT'
         ], 201);
@@ -87,5 +83,56 @@ class AuthController extends Controller
             'message' => 'Update berhasil dilakukan',
             'user' => $user
         ], 200);
+    }
+
+    public function index()
+    {
+        $this->authorizeAdmin();
+        $user = User::all();
+        return response()->json($user);
+    }
+
+    public function show(string $id)
+    {
+        $this->authorizeAdmin();
+        $user = User::findOrFail($id);
+        return response()->json($user);
+    }
+
+    public function destroy(string $id)
+    {
+        $this->authorizeAdmin();
+        $user = User::findOrFail($id);
+        $user->delete();
+        return response()->json(['message' => 'Akun berhasil dihapus']);
+
+    }
+
+    public function updateRole(Request $request, string $id)
+    {
+        $this->authorizeAdmin();
+        $request->validate([
+            'role' => 'required|string|in:user,admin',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        if ($user->role === $request->role) {
+            return response()->json(['message' => 'ROLE SUDAH SESUAI, TIDAK ADA PERUBAHAN']);
+        }
+
+        $user->role = $request->role;
+        $user->save();
+
+        return response()->json([
+            'message' => 'ROLE BERHASIL DIUBAH',
+            'user' => $user
+        ]);
+    }
+
+    private function authorizeAdmin(){
+        if (Auth::user()->role !== 'admin'){
+            abort(403, 'AKSES DITOLAK. HANYA ADMIN YANG BOLEH MENGAKSES');
+        }
     }
 }

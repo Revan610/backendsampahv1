@@ -33,6 +33,7 @@ class WastesController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeAdmin();
         $validator = Validator::make($request->all(), [
             'name'=>'required|string|max:50',
             'price_per_kg'=>'required|numeric|min:0',
@@ -92,6 +93,7 @@ class WastesController extends Controller
      */
     public function update(Request $request, string $id)
     {
+        $this->authorizeAdmin();
         $waste = Wastes::find($id);
         if (!$waste) {
             return response()->json(['message' => 'Waste not found'], 404);
@@ -129,6 +131,7 @@ class WastesController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizeAdmin();
         $waste = Wastes::find($id);
 
         if (!$waste) {
@@ -137,5 +140,11 @@ class WastesController extends Controller
 
         $waste->delete();
         return response()->json(['message' => 'Wastes successfully deleted']);
+    }
+
+    private function authorizeAdmin(){
+        if (Auth::user()->role !== 'admin'){
+            abort(403, 'AKSES DITOLAK. HANYA ADMIN YANG BOLEH MENGAKSES');
+        }
     }
 }
