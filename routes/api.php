@@ -4,6 +4,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CategoriesController;
+use App\Http\Controllers\Api\TransactionsController;
 use App\Http\Controllers\Api\WastesController;
 
 /*
@@ -23,12 +24,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();
     });
+    //auth
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::put('/update/{id}', [AuthController::class, 'update']);
+    //admin
     Route::get('/admin', [AuthController::class, 'index']);
     Route::get('/admin/{id}', [AuthController::class, 'show']);
     Route::delete('/admin/{id}', [AuthController::class, 'destroy']);
     Route::put('/admin/role/{id}', [AuthController::class, 'updateRole']);
+    //another
     Route::apiResource('category',CategoriesController::class);
     Route::apiResource('wastes',WastesController::class);
+    Route::post('/transaction', [TransactionsController::class, 'store']);
 });

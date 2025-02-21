@@ -32,6 +32,7 @@ class CategoriesController extends Controller
      */
     public function store(Request $request)
     {
+        $this->authorizeAdmin();
         $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'nullable|string'
@@ -98,10 +99,17 @@ class CategoriesController extends Controller
      */
     public function destroy(string $id)
     {
+        $this->authorizeAdmin();
         $category = Categories::destroy($id);
         if(!$category){
             return response()->json(['message' => 'Category Was Failed To Deleted']);
         }
         return response()->json(['message' => 'Category Was Successfuly Deleted']);
+    }
+
+    private function authorizeAdmin(){
+        if (Auth::user()->role !== 'admin'){
+            abort(403, 'AKSES DITOLAK. HANYA ADMIN YANG BOLEH MENGAKSES');
+        }
     }
 }
