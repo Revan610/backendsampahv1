@@ -77,7 +77,10 @@ class TransactionsController extends Controller
             $saving->save();
         });
         
-        return response()->json(['message' => 'Transaction created successfully']);
+        return response()->json([
+            'message' => 'Transaction created successfully',
+            'transaction' => $transaction
+        ], 201);
     }
 
     /**
