@@ -1,9 +1,13 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use App\Models\Withdrawals;
+use App\Models\Savings;
+use App\Models\User;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\DB;
 
 class WithdrawalsController extends Controller
 {
@@ -28,7 +32,43 @@ class WithdrawalsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'amount' => 'required|numeric|min:1',
+        ]);
+
+        return DB::transaction(function () use ($request) {
+            // Cek saldo user
+            $user_id = auth()->id(); 
+            $saving = Savings::where('user_id', $user_id)->first();
+            if (!$saving || $saving->balance < $request->amount) {
+                return response()->json(['message' => 'Saldo anda tidak mencukupi'], 400);
+            }
+
+            // Kurangi saldo
+            $saving->balance -= $request->amount;
+            $saving->save();
+
+            // Catat riwayat withdrawal
+            $withdrawal = new Withdrawals();
+            $withdrawal->user_id = $user_id;
+            $withdrawal->amount = $request->amount;
+            $withdrawal->withdrawal_date = now();
+            $withdrawal->save();
+
+            return response()->json([
+                'message' => 'Withdrawal request created successfully',
+                'withdrawal' => $withdrawal
+            ]);
+        });
+    }
+
+    public function withdrawals_history(Request $request)
+    {
+        $userId = auth()->id(); 
+        $withdrawals = Withdrawals::where('user_id', $userId)->get();
+        return response()->json([
+        'data' => $withdrawals
+        ]);
     }
 
     /**
