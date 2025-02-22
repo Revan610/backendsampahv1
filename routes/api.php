@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\Api\CategoriesController;
 use App\Http\Controllers\Api\TransactionsController;
+use App\Http\Controllers\Api\WithdrawalsController;
 use App\Http\Controllers\Api\WastesController;
 
 /*
@@ -36,4 +37,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('category',CategoriesController::class);
     Route::apiResource('wastes',WastesController::class);
     Route::post('/transaction', [TransactionsController::class, 'store']);
+    Route::get('/transaction/history', [TransactionsController::class, 'transaction_history']);
+    Route::post('/withdrawals', [WithdrawalsController::class, 'store']);
+    Route::get('/withdrawals/history', [WithdrawalsController::class, 'withdrawals_history']);
 });

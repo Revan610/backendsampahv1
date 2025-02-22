@@ -9,6 +9,7 @@ class Transactions extends Model
 {
     use HasFactory;
     protected $fillable = [
+        'user_id',
         'total_weight',
         'total_price',
     ];

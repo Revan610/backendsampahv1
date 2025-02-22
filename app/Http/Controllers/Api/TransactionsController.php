@@ -33,52 +33,61 @@ class TransactionsController extends Controller
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
-    {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'waste_id' => 'required|exists:wastes,id',
-            'weight' => 'required|min:0'
+{
+    $request->validate([
+        'waste_id' => 'required|exists:wastes,id',
+        'weight' => 'required|numeric|min:0.1'
+    ]);
+
+    return DB::transaction(function () use ($request) {
+        $user_id = auth()->id();
+        
+        $transaction = new Transactions();
+        $transaction->user_id = $user_id;
+        $transaction->total_weight = 0;
+        $transaction->total_price = 0;
+        $transaction->transaction_date = now();
+        $transaction->save();
+
+        $waste = Wastes::findOrFail($request->waste_id);
+        $price = $request->weight * $waste->price_per_kg;
+
+        $transactiond = new Transaction_details();
+        $transactiond->transaction_id = $transaction->id;
+        $transactiond->waste_id = $waste->id;
+        $transactiond->weight = $request->weight;
+        $transactiond->price = $price;
+        $transactiond->save();
+
+        $transaction->update([
+            'total_weight' => $request->weight,
+            'total_price' => $price,
         ]);
 
-        DB::transaction(function () use ($request) {
-            $totalWeight = 0;
-            $totalPrice = 0;
-            
-            $transaction = new Transactions();
-            $transaction->user_id = $request->user_id;
-            $transaction->total_weight = 0;
-            $transaction->total_price = 0;
-            $transaction->transaction_date = now();
-            $transaction->save();
+        $saving = Savings::firstOrCreate(
+            ['user_id' => $user_id],
+            ['balance' => 0]
+        );
+        $saving->balance += $price;
+        $saving->save();
+        return response()->json([
+            'message' => 'Transaction created successfully',
+            'transaction' => $transaction
+        ], 201);
+    });
 
-            $waste = Wastes::findOrFail($request->waste_id);
-            $price = $request->weight * $waste->price_per_kg;
+}
 
-            $transactiond = new Transaction_details();
-            $transactiond->transaction_id = $transaction->id;
-            $transactiond->waste_id = $waste->id;
-            $transactiond->weight = $request->weight;
-            $transactiond->price = $price;
-            $transactiond->save();
-                
-            $totalWeight += $request->weight;
-            $totalPrice += $price;
 
-            $transaction->update([
-                'total_weight' => $totalWeight,
-                'total_price' => $totalPrice,
-            ]);
-            
-            $saving = Savings::firstOrCreate(
-                ['user_id' => $request->user_id],
-                ['balance' => 0]
-            );
-            $saving->balance += $price;
-            $saving->save();
-        });
-        
-        return response()->json(['message' => 'Transaction created successfully']);
+    public function transaction_history(Request $request)
+    {
+        $userId = auth()->id(); 
+        $transaction = Transactions::where('user_id', $userId)->get();
+        return response()->json([
+        'data' => $transaction
+        ]);
     }
+
 
     /**
      * Display the specified resource.
