@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Categories;
 use Illuminate\Http\Request;
+use Auth;
 
 class CategoriesController extends Controller
 {
@@ -24,7 +25,7 @@ class CategoriesController extends Controller
      */
     public function create()
     {
-        
+
     }
 
     /**
@@ -37,7 +38,7 @@ class CategoriesController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable|string'
         ]);
-        
+
         if (Categories::count()>=3){
             return response()->json([
                 'status' => 'failed',

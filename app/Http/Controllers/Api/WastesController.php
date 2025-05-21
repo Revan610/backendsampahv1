@@ -5,6 +5,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Wastes;
 use Illuminate\Support\Facades\Validator;
+use Auth;
 
 class WastesController extends Controller
 {

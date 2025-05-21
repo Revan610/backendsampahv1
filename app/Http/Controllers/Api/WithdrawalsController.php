@@ -33,12 +33,12 @@ class WithdrawalsController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'amount' => 'required|numeric|min:1',
+            'amount' => 'required|numeric|min:100',
         ]);
 
         return DB::transaction(function () use ($request) {
             // Cek saldo user
-            $user_id = auth()->id(); 
+            $user_id = auth()->id();
             $saving = Savings::where('user_id', $user_id)->first();
             if (!$saving || $saving->balance < $request->amount) {
                 return response()->json(['message' => 'Saldo anda tidak mencukupi'], 400);
@@ -64,7 +64,7 @@ class WithdrawalsController extends Controller
 
     public function withdrawals_history(Request $request)
     {
-        $userId = auth()->id(); 
+        $userId = auth()->id();
         $withdrawals = Withdrawals::where('user_id', $userId)->get();
         return response()->json([
         'data' => $withdrawals

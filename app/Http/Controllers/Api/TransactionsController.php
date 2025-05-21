@@ -41,16 +41,16 @@ class TransactionsController extends Controller
 
     return DB::transaction(function () use ($request) {
         $user_id = auth()->id();
-        
+        $waste = Wastes::findOrFail($request->waste_id);
+        $price = $request->weight * $waste->price_per_kg;
+
         $transaction = new Transactions();
         $transaction->user_id = $user_id;
-        $transaction->total_weight = 0;
-        $transaction->total_price = 0;
+        $transaction->total_weight = $request->weight;
+        $transaction->total_price = $price;
         $transaction->transaction_date = now();
         $transaction->save();
 
-        $waste = Wastes::findOrFail($request->waste_id);
-        $price = $request->weight * $waste->price_per_kg;
 
         $transactiond = new Transaction_details();
         $transactiond->transaction_id = $transaction->id;
@@ -58,11 +58,6 @@ class TransactionsController extends Controller
         $transactiond->weight = $request->weight;
         $transactiond->price = $price;
         $transactiond->save();
-
-        $transaction->update([
-            'total_weight' => $request->weight,
-            'total_price' => $price,
-        ]);
 
         $saving = Savings::firstOrCreate(
             ['user_id' => $user_id],
@@ -81,7 +76,7 @@ class TransactionsController extends Controller
 
     public function transaction_history(Request $request)
     {
-        $userId = auth()->id(); 
+        $userId = auth()->id();
         $transaction = Transactions::where('user_id', $userId)->get();
         return response()->json([
         'data' => $transaction
